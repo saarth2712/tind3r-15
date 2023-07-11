@@ -9,10 +9,22 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@firebase/firestore": "^4.0.0",
+    "@react-native-async-storage/async-storage": "1.17.11",
+    "@react-navigation/native": "^6.1.7",
+    "@react-navigation/stack": "^6.3.17",
     "expo": "~48.0.18",
+    "expo-device": "~5.2.1",
+    "expo-file-system": "~15.2.2",
+    "expo-image-picker": "~14.1.1",
+    "expo-location": "~15.1.1",
+    "expo-media-library": "~15.2.3",
     "expo-status-bar": "~1.4.4",
+    "firebase": "^10.0.0",
+    "git": "^0.1.5",
     "react": "18.2.0",
-    "react-native": "0.71.8"
+    "react-native": "0.71.8",
+    "react-native-paper": "^5.9.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

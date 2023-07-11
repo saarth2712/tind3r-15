@@ -1,14 +1,26 @@
-import { StatusBar } from 'expo-status-bar';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import LoginScreen from './screens/LoginScreen';
+import SignUpScreen from '/Users/saarth2712/tind3r-15/screens/SignUpScreen.js';
+import CreateProfileScreen from '/Users/saarth2712/tind3r-15/screens/CreateProfileScreen.js';
+import HomeScreen from './screens/HomeScreen';
 
-export default function App() {
+const Stack = createStackNavigator();
+
+export default function App () {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
+        <Stack.Screen name="CreateProfile" component={CreateProfileScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -18,3 +30,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
