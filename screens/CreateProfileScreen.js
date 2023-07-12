@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Alert, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import * as Location from 'expo-location';
 import { useNavigation } from '@react-navigation/native';
-
+import { getAuth } from 'firebase/auth';
+import { getDatabase, ref, set } from 'firebase/database';
 import { auth, db } from '/Users/saarth2712/tind3r-15/firebase.js';
 
 const niches = ['Fitness', 'Beauty', 'Fashion', 'Food', 'Travel', 'Lifestyle', 'Gaming', 'Tech'];
 
 const CreateProfileScreen = () => {
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [profileImage, setProfileImage] = useState(null);
   const [bio, setBio] = useState('');
   const [isBrand, setIsBrand] = useState(false);
@@ -25,7 +25,7 @@ const CreateProfileScreen = () => {
 
   useEffect(() => {
     getMediaLibraryPermission();
-    getLocationPermission();
+    getLocationPermission(); 
   }, []);
 
   const getMediaLibraryPermission = async () => {
@@ -52,20 +52,40 @@ const CreateProfileScreen = () => {
         quality: 1,
       });
 
-      if (!result.cancelled) {
-        setProfileImage(result.uri);
+      if (!result.canceled) {
+        setProfileImage(result.assets[0].uri);
       }
     } else {
       Alert.alert('Permission required', 'Please grant media library permission to choose a profile picture.');
     }
   };
 
-  const handleCreateProfile = async () => {
-    const user = auth.currentUser;
-    const userRef = doc(db, 'users', user.uid);
-
+  const handleCreateProfile = async () => {    
     try {
-      await setDoc(userRef, { name, profileImage, bio, isBrand, audience, location, city, town, niches: selectedNiches, likedProfiles: [], dislikedProfiles: [], matches: [] });
+      const user = auth.currentUser;
+      const { uid } = user;
+
+      const userData = {
+        name,
+        username,
+        profileImage,
+        bio,
+        isBrand,
+        audience,
+        location,
+        city,
+        town,
+        niches: selectedNiches,
+      };
+
+      let nodeRef;
+      if (isBrand) {
+        nodeRef = ref(db, 'users/brands/' + username);
+      } else {
+        nodeRef = ref(db, 'users/creators/' + username);
+      }
+  
+      await set(nodeRef, userData);  
 
       Alert.alert('Profile created', 'Your profile has been created successfully.');
       navigation.navigate('Home');
@@ -111,17 +131,16 @@ const CreateProfileScreen = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Create Profile</Text>
 
-      {/* Profile Image */}
       {profileImage && <Image source={{ uri: profileImage }} style={styles.profileImage} />}
       <Button title="Choose Profile Picture" onPress={pickImage} />
 
-      {/* Name Input */}
       <TextInput style={styles.input} placeholder="Name" value={name} onChangeText={setName} />
 
-      {/* Bio Input */}
+      {/* Username Input */}
+      <TextInput style={styles.input} placeholder="Username" value={username} onChangeText={setUsername} />
+
       <TextInput style={styles.input} placeholder="Bio" value={bio} onChangeText={setBio} />
 
-      {/* Role Selection */}
       <View style={styles.roleContainer}>
         <Text style={styles.roleLabel}>Are you a:</Text>
         <View style={styles.roleButtonsContainer}>
@@ -138,7 +157,6 @@ const CreateProfileScreen = () => {
         </View>
       </View>
 
-      {/* Audience Input */}
       <TextInput
         style={styles.input}
         placeholder="My Audience is..."
@@ -146,7 +164,6 @@ const CreateProfileScreen = () => {
         onChangeText={setAudience}
       />
 
-      {/* Niche Selection */}
       <Text style={styles.nicheTitle}>Select up to 3 Niches:</Text>
       <View style={styles.nicheContainer}>
         {niches.map((niche) => (
@@ -163,7 +180,6 @@ const CreateProfileScreen = () => {
         ))}
       </View>
 
-      {/* GPS Location */}
       <Button title="Get Current Location" onPress={getLocationAsync} />
       {(city || town) && (
         <Text style={styles.locationText}>
@@ -172,7 +188,6 @@ const CreateProfileScreen = () => {
         </Text>
       )}
 
-      {/* Create Profile Button */}
       <Button title="Create Profile" onPress={handleCreateProfile} />
     </ScrollView>
   );

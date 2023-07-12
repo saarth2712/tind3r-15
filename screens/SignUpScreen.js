@@ -11,7 +11,7 @@ const SignUpScreen = () => {
   const [password, setPassword] = useState('');
 
   const handleSignUp = () => {
-    const auth = getAuth();x
+    const auth = getAuth();
     createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed up successfully
