@@ -15,7 +15,7 @@ const LoginScreen = () => {
     const unsubscribe = onAuthStateChanged(authInstance, (user) => {
       if (user) {
         // User is signed in, navigate to HomeScreen
-        navigation.navigate('CreateProfile');
+        navigation.navigate('Home');
       }
     });
 

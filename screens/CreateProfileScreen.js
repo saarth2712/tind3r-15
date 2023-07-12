@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Alert,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import * as Location from 'expo-location';
@@ -14,6 +24,7 @@ const CreateProfileScreen = () => {
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [profileImage, setProfileImage] = useState(null);
+  const [additionalImage, setAdditionalImage] = useState(null);
   const [bio, setBio] = useState('');
   const [isBrand, setIsBrand] = useState(false);
   const [audience, setAudience] = useState('');
@@ -21,11 +32,12 @@ const CreateProfileScreen = () => {
   const [city, setCity] = useState('');
   const [town, setTown] = useState('');
   const [selectedNiches, setSelectedNiches] = useState([]);
+  const [followers, setFollowers] = useState('');
   const navigation = useNavigation();
 
   useEffect(() => {
     getMediaLibraryPermission();
-    getLocationPermission(); 
+    getLocationPermission();
   }, []);
 
   const getMediaLibraryPermission = async () => {
@@ -60,7 +72,25 @@ const CreateProfileScreen = () => {
     }
   };
 
-  const handleCreateProfile = async () => {    
+  const pickAdditionalImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status === 'granted') {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setAdditionalImage(result.assets[0].uri);
+      }
+    } else {
+      Alert.alert('Permission required', 'Please grant media library permission to choose an additional image.');
+    }
+  };
+
+  const handleCreateProfile = async () => {
     try {
       const user = auth.currentUser;
       const { uid } = user;
@@ -69,6 +99,7 @@ const CreateProfileScreen = () => {
         name,
         username,
         profileImage,
+        additionalImage,
         bio,
         isBrand,
         audience,
@@ -76,17 +107,15 @@ const CreateProfileScreen = () => {
         city,
         town,
         niches: selectedNiches,
+        followers: parseInt(followers), // Convert followers to integer
+        likedProfiles: [],
+        dislikedProfiles: [],
+        matches: [],
       };
 
-      let nodeRef;
-      if (isBrand) {
-        nodeRef = ref(db, 'users/brands/' + username);
-      } else {
-        nodeRef = ref(db, 'users/creators/' + username);
-      }
-  
-      await set(nodeRef, userData);  
-
+      const nodeRef = ref(db, `users/${username}`);
+      await set(nodeRef, userData);
+      
       Alert.alert('Profile created', 'Your profile has been created successfully.');
       navigation.navigate('Home');
     } catch (error) {
@@ -134,6 +163,9 @@ const CreateProfileScreen = () => {
       {profileImage && <Image source={{ uri: profileImage }} style={styles.profileImage} />}
       <Button title="Choose Profile Picture" onPress={pickImage} />
 
+      {additionalImage && <Image source={{ uri: additionalImage }} style={styles.profileImage} />}
+      <Button title="Choose Additional Image" onPress={pickAdditionalImage} />
+
       <TextInput style={styles.input} placeholder="Name" value={name} onChangeText={setName} />
 
       {/* Username Input */}
@@ -179,6 +211,14 @@ const CreateProfileScreen = () => {
           </TouchableOpacity>
         ))}
       </View>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Number of Followers"
+        value={followers}
+        onChangeText={setFollowers}
+        keyboardType="numeric"
+      />
 
       <Button title="Get Current Location" onPress={getLocationAsync} />
       {(city || town) && (
